@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>显化日记 v2</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  background: #1a1a1a;
+  display: flex; justify-content: center; align-items: center;
+  min-height: 100vh;
+}
+
+.phone {
+  width: 390px; height: 844px;
+  background: #F5F0E8; /* 旧纸色 */
+  border-radius: 40px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0,0,0,.4);
+  position: relative;
+}
+
+/* ── 场景层（用 JS 切换） ── */
+.scene { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.scene.active { display: flex; }
+
+/* ═══════════════════════════════ */
+/*  场景1：情绪温度计            */
+/* ═══════════════════════════════ */
+.mood-entry {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px 32px; gap: 40px;
+  background: linear-gradient(180deg, #EFE8DA 0%, #F5F0E8 40%, #E8E0D3 100%);
+  position: relative;
+}
+.mood-entry::before {
+  content: ''; position: absolute; top: 40px; left: 32px; right: 32px; height: 2px;
+  background: repeating-linear-gradient(90deg, #c4b393 0, #c4b393 4px, transparent 4px, transparent 8px);
+  opacity: 0.3;
+}
+.mood-date {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px; color: #8c7b6b; letter-spacing: 3px; text-align: center;
+}
+.mood-question {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 28px; font-weight: 600; color: #3d3226;
+  text-align: center; line-height: 1.5;
+}
+.mood-wheel {
+  width: 260px; height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #F5F0E8 30%, #E8DCC8 100%);
+  position: relative;
+  box-shadow: 0 8px 40px rgba(0,0,0,.08), inset 0 0 0 2px rgba(0,0,0,.04);
+}
+.mood-label {
+  position: absolute;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px; color: #6b5e4e; transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.mood-center {
+  position: absolute; top: 50%; left: 50%;
+  width: 100px; height: 100px; border-radius: 50%;
+  background: #F5F0E8; transform: translate(-50%, -50%);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+}
+.mood-center-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px; color: #8c7b6b; text-align: center;
+}
+.mood-modes {
+  display: flex; gap: 10px;
+}
+.mode-dot {
+  width: 10px; height: 10px; border-radius: 50%; background: #d4c9b5;
+  transition: all .3s;
+}
+.mode-dot.active { background: #5c4a3a; width: 24px; border-radius: 6px; }
+.mood-hint {
+  font-size: 12px; color: #b0a390; letter-spacing: 1px;
+}
+
+/* ═══════════════════════════════ */
+/*  场景2：对话日记              */
+/* ═══════════════════════════════ */
+.journal-scene {
+  background: #F5F0E8; flex: 1; display: flex; flex-direction: column;
+}
+
+/* 顶部 — 杂志式日期+引用 */
+.journal-masthead {
+  padding: 16px 24px 12px;
+  display: flex; justify-content: space-between; align-items: flex-end;
+  border-bottom: 1px solid rgba(0,0,0,.06);
+}
+.masthead-date {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px; color: #3d3226; letter-spacing: 2px;
+}
+.masthead-mood {
+  display: flex; align-items: center; gap: 6px;
+}
+.mood-dot-small {
+  width: 12px; height: 12px; border-radius: 50%; background: #c4a265;
+}
+.mood-word {
+  font-size: 12px; color: #8c7b6b; letter-spacing: 1px;
+}
+.journal-quote {
+  padding: 10px 24px 6px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 12px; color: #b0a390; font-style: italic;
+  letter-spacing: 1px; text-align: center;
+}
+
+/* 对话区 */
+.conversation {
+  flex: 1; overflow-y: auto; padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.conversation::-webkit-scrollbar { display: none; }
+
+/* AI 消息 */
+.msg-ai {
+  align-self: flex-start; max-width: 88%;
+  display: flex; gap: 8px;
+}
+.msg-ai-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #E8DCC8; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.msg-ai-body {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.msg-ai-text {
+  background: #fff; padding: 14px 18px;
+  border-radius: 20px 20px 20px 4px;
+  font-size: 14px; line-height: 1.7; color: #3d3226;
+  box-shadow: 0 2px 8px rgba(0,0,0,.03);
+}
+.msg-ai-time {
+  font-size: 10px; color: #c4b393; padding-left: 8px;
+}
+
+/* 用户消息 */
+.msg-user {
+  align-self: flex-end; max-width: 85%;
+}
+.msg-user-text {
+  background: #3d3226; color: #F5F0E8;
+  padding: 14px 18px;
+  border-radius: 20px 20px 4px 20px;
+  font-size: 14px; line-height: 1.7;
+}
+
+/* AI 的插入卡片 — 杂志风格 */
+.insert-card {
+  align-self: stretch;
+  margin: 8px 0;
+  padding: 20px 24px;
+  border-radius: 2px 20px 20px 20px;
+  font-size: 13px; line-height: 1.8;
+  position: relative;
+}
+.insert-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 3px; height: 100%;
+  border-radius: 2px;
+}
+/* 察觉 */
+.card-aware {
+  background: #fff; color: #5c4a3a;
+}
+.card-aware::before { background: #c4a265; }
+/* 释放 — 感恩 */
+.card-gratitude {
+  background: #FAF6F0; color: #5c4a3a;
+  border: 1px solid rgba(140, 160, 120, .2);
+}
+.card-gratitude::before { background: #7c9a6e; }
+/* 释放 — 转念 */
+.card-reframe {
+  background: #FDF8F2; color: #5c4a3a;
+  border: 1px solid rgba(180, 140, 100, .2);
+}
+.card-reframe::before { background: #c4946e; }
+/* 肯定 */
+.card-affirm {
+  background: linear-gradient(135deg, #FEF9F4, #FDF6EC);
+  color: #3d3226; border: 1px solid rgba(196, 162, 101, .2);
+}
+.card-affirm::before { background: #c4a265; }
+/* 行动 */
+.card-action {
+  background: #fff; color: #3d3226;
+  border: 1px solid rgba(0,0,0,.06);
+}
+.card-action::before { background: #3d3226; }
+
+.card-label {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: #8c7b6b; margin-bottom: 8px;
+}
+.card-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px; font-weight: 600; color: #3d3226; margin-bottom: 8px;
+}
+.card-body { font-size: 14px; line-height: 1.8; color: #5c4a3a; }
+.card-body em { font-family: 'Noto Serif SC', serif; font-style: italic; color: #8c7b6b; }
+
+/* 行动清单项 */
+.todo-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 8px 0;
+}
+.todo-circle {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 1.5px solid #d4c9b5; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: transparent;
+}
+.todo-item.done .todo-circle { background: #7c9a6e; border-color: #7c9a6e; color: #fff; }
+.todo-text { font-size: 14px; color: #5c4a3a; line-height: 1.6; }
+.todo-item.done .todo-text { color: #b0a390; text-decoration: line-through; }
+
+/* AI 插入的分隔线 */
+.interjection {
+  align-self: stretch;
+  display: flex; align-items: center; gap: 12px;
+  padding: 4px 0; margin: 4px 0;
+}
+.interjection-line {
+  flex: 1; height: 1px;
+  background: repeating-linear-gradient(90deg, #d4c9b5 0, #d4c9b5 3px, transparent 3px, transparent 6px);
+}
+.interjection-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 11px; color: #b0a390; font-style: italic; letter-spacing: 1px; white-space: nowrap;
+}
+
+/* 底部输入 */
+.journal-input-bar {
+  padding: 12px 20px 20px; display: flex; gap: 10px; align-items: center;
+  background: #F5F0E8; border-top: 1px solid rgba(0,0,0,.04);
+}
+.journal-input-bar input {
+  flex: 1; padding: 14px 20px; border-radius: 24px;
+  border: 1px solid #d4c9b5; font-size: 14px; background: #fff; color: #3d3226; outline: none;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.journal-input-bar input::placeholder { color: #c4b393; font-style: italic; letter-spacing: 1px; }
+.send-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: #3d3226; color: #F5F0E8; border: none;
+  font-size: 18px; cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ═══════════════════════════════ */
+/*  场景3：AI 声音选择          */
+/* ═══════════════════════════════ */
+.voice-scene {
+  flex: 1; display: flex; flex-direction: column;
+  background: #F5F0E8; padding: 32px 24px; gap: 24px;
+}
+.voice-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px; font-weight: 600; color: #3d3226;
+  text-align: center;
+}
+.voice-subtitle {
+  font-size: 13px; color: #8c7b6b; text-align: center; letter-spacing: 1px;
+}
+.voice-cards {
+  display: flex; flex-direction: column; gap: 12px;
+}
+.voice-card {
+  padding: 18px 20px; background: #fff; border-radius: 16px;
+  border: 1.5px solid transparent; cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; gap: 14px;
+}
+.voice-card.selected { border-color: #3d3226; background: #FAF8F4; }
+.voice-emoji { font-size: 28px; flex-shrink: 0; }
+.voice-info { display: flex; flex-direction: column; gap: 2px; }
+.voice-name { font-family: 'Noto Serif SC', serif; font-size: 16px; color: #3d3226; font-weight: 600; }
+.voice-desc { font-size: 12px; color: #8c7b6b; line-height: 1.5; }
+.voice-select-indicator {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 2px solid #d4c9b5; flex-shrink: 0; margin-left: auto;
+  display: flex; align-items: center; justify-content: center;
+}
+.voice-card.selected .voice-select-indicator { background: #3d3226; border-color: #3d3226; }
+.voice-card.selected .voice-select-indicator::after {
+  content: '✓'; color: #fff; font-size: 12px;
+}
+
+/* ═══════════════════════════════ */
+/*  底部导航                     */
+/* ═══════════════════════════════ */
+.bottom-nav {
+  display: flex; justify-content: space-around; align-items: center;
+  padding: 12px 32px 20px;
+  background: #F5F0E8; border-top: 1px solid rgba(0,0,0,.04);
+}
+.nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  font-size: 10px; color: #c4b393; cursor: pointer; transition: all .2s;
+}
+.nav-item.active { color: #3d3226; }
+.nav-icon { font-size: 20px; }
+
+/* ═══════════════════════════════ */
+/*  响应式                       */
+/* ═══════════════════════════════ */
+@media (max-width: 420px) {
+  .phone { width:100%; height:100vh; border-radius:0; }
+}
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone">
+
+  <!-- ═══════ 场景1：情绪温度计 ═══════ -->
+  <div class="scene active" id="scene-mood">
+    <div class="mood-entry">
+      <div class="mood-date">MAY 7 · WEDNESDAY</div>
+      <div class="mood-question">此刻，你的<br>情绪停在哪里？</div>
+      <div class="mood-wheel">
+        <span class="mood-label" style="top:12%;left:50%">平静</span>
+        <span class="mood-label" style="top:28%;left:80%">兴奋</span>
+        <span class="mood-label" style="top:55%;left:88%">感恩</span>
+        <span class="mood-label" style="top:78%;left:62%">期待</span>
+        <span class="mood-label" style="top:82%;left:30%">疲惫</span>
+        <span class="mood-label" style="top:65%;left:8%">低落</span>
+        <span class="mood-label" style="top:38%;left:5%">焦虑</span>
+        <span class="mood-label" style="top:18%;left:22%">充实</span>
+        <div class="mood-center" onclick="enterJournal()">
+          <div class="mood-center-text">触碰<br>开始</div>
+        </div>
+      </div>
+      <div class="mood-modes">
+        <span class="mode-dot active"></span>
+        <span class="mode-dot"></span>
+        <span class="mode-dot"></span>
+        <span class="mode-dot"></span>
+      </div>
+      <div class="mood-hint">← 四种模式 · 滑动切换 →</div>
+    </div>
+    <div class="bottom-nav">
+      <div class="nav-item active"><span class="nav-icon">🌙</span>今天</div>
+      <div class="nav-item"><span class="nav-icon">📖</span>日记本</div>
+      <div class="nav-item"><span class="nav-icon">🎙️</span>声音</div>
+      <div class="nav-item"><span class="nav-icon">⚙️</span>设置</div>
+    </div>
+  </div>
+
+  <!-- ═══════ 场景2：对话日记 ═══════ -->
+  <div class="scene" id="scene-journal">
+    <div class="journal-scene">
+      <div class="journal-masthead">
+        <div>
+          <div class="masthead-date">五月七日 · 星期三</div>
+        </div>
+        <div class="masthead-mood">
+          <span class="mood-dot-small"></span>
+          <span class="mood-word">焦虑</span>
+        </div>
+      </div>
+      <div class="journal-quote">"焦虑不是弱点，是被你压抑的力量在呼吸。"</div>
+
+      <div class="conversation" id="conversation">
+        <!-- Step 1: 察觉 -->
+        <div class="msg-ai">
+          <div class="msg-ai-avatar">🌙</div>
+          <div class="msg-ai-body">
+            <div class="msg-ai-text">晚上好。今天发生了什么？想到什么就写什么。</div>
+            <div class="msg-ai-time">21:32</div>
+          </div>
+        </div>
+
+        <div class="msg-user"><div class="msg-user-text">今天项目汇报被夸了，但下班后莫名很焦虑。可能因为接下来要负责更大的项目了。</div></div>
+
+        <!-- AI 插入：察觉 -->
+        <div class="insert-card card-aware">
+          <div class="card-label">察觉</div>
+          <div class="card-title">我听到了两种情绪</div>
+          <div class="card-body">被认可的高光时刻，和随之而来的不安。<br><em>这很常见——越靠近自己想要的，焦虑越容易浮现。</em></div>
+        </div>
+
+        <!-- Step 2: 释放 -->
+        <div class="msg-ai">
+          <div class="msg-ai-avatar">🌙</div>
+          <div class="msg-ai-body">
+            <div class="msg-ai-text">被夸的那一瞬间，你还记得是什么感觉吗？</div>
+            <div class="msg-ai-time">21:33</div>
+          </div>
+        </div>
+
+        <div class="msg-user"><div class="msg-user-text">就觉得，原来我做的事真的被看到了。老板说方案很有深度，我当时鼻子有点酸。</div></div>
+
+        <!-- AI 插入：感恩 -->
+        <div class="insert-card card-gratitude">
+          <div class="card-label">释放 · 感恩</div>
+          <div class="card-title">这份认可，你等了一段时间了吧</div>
+          <div class="card-body">连续加班的夜晚、改了五版的方案，这一刻都被看见了。不只是被老板看见——<br><em>是被你自己看见了。你允许自己为自己骄傲了吗？</em></div>
+        </div>
+
+        <!-- AI 插入：转念 -->
+        <div class="insert-card card-reframe">
+          <div class="card-label">释放 · 转念</div>
+          <div class="card-title">换个角度看焦虑</div>
+          <div class="card-body">焦虑有时候不是恐惧失败，是潜意识在说：<br><em>"这个位置很重要，你要认真对待。"</em><br>它不是绊脚石，是你开始在意自己高度的信号。</div>
+        </div>
+
+        <!-- Step 3: 肯定 -->
+        <div class="insert-card card-affirm">
+          <div class="card-label">肯定</div>
+          <div class="card-title">以已拥有的状态，写下此刻</div>
+          <div class="card-body">
+            我的能力被看见，也被我自己承认。<br>
+            我拥有面对更大挑战的智慧与韧性。<br>
+            焦虑是我的导航，不是我的敌人。<br>
+            我已经是那个既能扛事、也会善待自己的人。
+          </div>
+        </div>
+
+        <!-- Step 4: 行动 -->
+        <div class="insert-card card-action">
+          <div class="card-label">行动</div>
+          <div class="card-title">如果此刻你已经完全拥有从容，你会做哪些小事？</div>
+          <div class="card-body">
+            <div class="todo-item done"><div class="todo-circle">✓</div><div class="todo-text">写下三件今天做得好的具体的事</div></div>
+            <div class="todo-item"><div class="todo-circle"></div><div class="todo-text">睡前把手机放在客厅，读五页书</div></div>
+            <div class="todo-item"><div class="todo-circle"></div><div class="todo-text">闭眼对自己说："我配得上这个位置"</div></div>
+          </div>
+        </div>
+
+        <!-- 分隔 -->
+        <div class="interjection">
+          <div class="interjection-line"></div>
+          <div class="interjection-text">今日日记已生成</div>
+          <div class="interjection-line"></div>
+        </div>
+
+        <div class="msg-ai">
+          <div class="msg-ai-avatar">🌙</div>
+          <div class="msg-ai-body">
+            <div class="msg-ai-text">都记下了。明天见。</div>
+            <div class="msg-ai-time">21:38</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="journal-input-bar">
+        <input type="text" placeholder="写下此刻的感受...">
+        <button class="send-btn">↑</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ 场景3：AI 声音选择 ═══════ -->
+  <div class="scene" id="scene-voice">
+    <div class="voice-scene">
+      <div class="voice-title">选择 AI 的声音</div>
+      <div class="voice-subtitle">不同日子，需要不同的陪伴</div>
+
+      <div class="voice-cards">
+        <div class="voice-card selected">
+          <div class="voice-emoji">🪞</div>
+          <div class="voice-info"><span class="voice-name">温柔的镜子</span><span class="voice-desc">观察 + 共情，帮你照见自己</span></div>
+          <div class="voice-select-indicator"></div>
+        </div>
+        <div class="voice-card">
+          <div class="voice-emoji">🧭</div>
+          <div class="voice-info"><span class="voice-name">温和的教练</span><span class="voice-desc">引导 + 追问，推动你往前走</span></div>
+          <div class="voice-select-indicator"></div>
+        </div>
+        <div class="voice-card">
+          <div class="voice-emoji">🫂</div>
+          <div class="voice-info"><span class="voice-name">陪伴的朋友</span><span class="voice-desc">有情绪、有态度，像深夜的电话</span></div>
+          <div class="voice-select-indicator"></div>
+        </div>
+        <div class="voice-card">
+          <div class="voice-emoji">🔬</div>
+          <div class="voice-info"><span class="voice-name">克制的分析师</span><span class="voice-desc">数据 + 趋势，客观标记和整理</span></div>
+          <div class="voice-select-indicator"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item"><span class="nav-icon">🌙</span>今天</div>
+      <div class="nav-item"><span class="nav-icon">📖</span>日记本</div>
+      <div class="nav-item active"><span class="nav-icon">🎙️</span>声音</div>
+      <div class="nav-item"><span class="nav-icon">⚙️</span>设置</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// 切换场景
+function showScene(id) {
+  document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// 情绪温度计点击进入日记
+function enterJournal() {
+  showScene('scene-journal');
+  document.querySelector('#phone').querySelectorAll('.bottom-nav .nav-item').forEach((el, i) => {
+    el.classList.toggle('active', i === 1);
+  });
+}
+
+// 底部导航
+document.querySelectorAll('.bottom-nav .nav-item').forEach((item, index) => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+    if (index === 0) showScene('scene-mood');
+    if (index === 1) showScene('scene-journal');
+    if (index === 2) showScene('scene-voice');
+    if (index === 3) showScene('scene-mood'); // 设置页暂未做
+  });
+});
+
+// AI 声音选择
+document.querySelectorAll('.voice-card').forEach(card => {
+  card.addEventListener('click', function() {
+    this.parentElement.querySelectorAll('.voice-card').forEach(c => c.classList.remove('selected'));
+    this.classList.add('selected');
+  });
+});
+
+// 行动清单勾选
+document.querySelectorAll('.todo-item').forEach(item => {
+  item.addEventListener('click', function() {
+    this.classList.toggle('done');
+  });
+});
+</script>
+
+</body>
+</html>
