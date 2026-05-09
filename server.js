@@ -71,9 +71,13 @@ app.post('/api/chat', async (req, res) => {
 
   const systemPrompt = buildSystemPrompt(applePath || 'only-apple')
 
+  // 前端用 'ai'，DeepSeek API 要求 'assistant'
   const apiMessages = [
     { role: 'system', content: systemPrompt },
-    ...messages
+    ...messages.map(m => ({
+      ...m,
+      role: m.role === 'ai' ? 'assistant' : m.role
+    }))
   ]
 
   try {

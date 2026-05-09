@@ -5,10 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>苹果</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&display=swap');
+
 * { margin:0; padding:0; box-sizing:border-box; }
 
 body {
-  font-family: 'PingFang SC', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+  font-family: 'Noto Sans SC', sans-serif;
   background: #1a1a1a;
   display: flex; justify-content: center; align-items: center;
   min-height: 100vh;
@@ -17,23 +19,26 @@ body {
 .phone {
   width: 390px; height: 844px; max-height: 100vh;
   background: #F5F0E8;
+  border-radius: 40px;
   overflow: hidden;
   display: flex; flex-direction: column;
   box-shadow: 0 20px 60px rgba(0,0,0,.4);
   position: relative;
 }
 
-/* ── 入口页 ── */
-#entry-screen {
-  flex:1; display:flex; flex-direction:column;
+/* ═══════════════════════════════ */
+/*  场景控制                      */
+/* ═══════════════════════════════ */
+.scene { display:none; flex-direction:column; flex:1; overflow:hidden; }
+.scene.active { display:flex; }
+
+/* ═══════════════════════════════ */
+/*  场景0：入口 — 苹果问题        */
+/* ═══════════════════════════════ */
+.entry-scene {
   align-items:center; justify-content:center;
-  padding: 40px 32px; gap: 32px;
-  background: linear-gradient(180deg, #EFE8DA 0%, #F5F0E8 60%, #E8E0D3 100%);
-  transition: opacity .4s, transform .4s;
-}
-#entry-screen.hidden {
-  opacity:0; transform:translateY(-20px); pointer-events:none;
-  position:absolute; top:0; left:0; right:0; bottom:0;
+  padding: 48px 32px; gap: 40px;
+  background: linear-gradient(180deg, #EFE8DA 0%, #F5F0E8 40%, #E8E0D3 100%);
 }
 .entry-icon {
   font-size: 64px;
@@ -44,10 +49,9 @@ body {
   50% { transform: translateY(-8px); }
 }
 .entry-question {
-  font-family: 'Noto Serif SC', 'STSong', serif;
+  font-family: 'Noto Serif SC', serif;
   font-size: 22px; font-weight: 600; color: #3d3226;
   text-align: center; line-height: 1.6;
-  letter-spacing: 1px;
 }
 .entry-paths {
   display: flex; flex-direction: column; gap: 14px; width: 100%;
@@ -63,116 +67,370 @@ body {
 }
 .path-btn:hover, .path-btn:active {
   background: #fff; border-color: #3d3226;
-  transform: scale(1.01);
 }
 .path-emoji { font-size: 28px; flex-shrink: 0; }
 .path-label { font-weight: 600; display:block; }
 .path-hint { font-size: 13px; color: #8c7b6b; font-weight: 400; display:block; margin-top: 2px; }
 
-/* ── 聊天页 ── */
-#chat-screen {
-  flex:1; display:none; flex-direction:column;
-  overflow:hidden;
+/* ═══════════════════════════════ */
+/*  场景1：情绪温度计             */
+/* ═══════════════════════════════ */
+.mood-entry {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px 32px; gap: 40px;
+  background: linear-gradient(180deg, #EFE8DA 0%, #F5F0E8 40%, #E8E0D3 100%);
+  position: relative;
 }
-#chat-screen.active { display:flex; }
+.mood-entry::before {
+  content: ''; position: absolute; top: 40px; left: 32px; right: 32px; height: 2px;
+  background: repeating-linear-gradient(90deg, #c4b393 0, #c4b393 4px, transparent 4px, transparent 8px);
+  opacity: 0.3;
+}
+.mood-date {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px; color: #8c7b6b; letter-spacing: 3px; text-align: center;
+}
+.mood-question {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 28px; font-weight: 600; color: #3d3226;
+  text-align: center; line-height: 1.5;
+}
+.mood-wheel {
+  width: 260px; height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #F5F0E8 30%, #E8DCC8 100%);
+  position: relative;
+  box-shadow: 0 8px 40px rgba(0,0,0,.08), inset 0 0 0 2px rgba(0,0,0,.04);
+}
+.mood-label {
+  position: absolute;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px; color: #6b5e4e; transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.mood-center {
+  position: absolute; top: 50%; left: 50%;
+  width: 100px; height: 100px; border-radius: 50%;
+  background: #F5F0E8; transform: translate(-50%, -50%);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,.06);
+  cursor: pointer; transition: all .2s;
+}
+.mood-center:hover { box-shadow: 0 4px 20px rgba(0,0,0,.12); transform: translate(-50%,-50%) scale(1.04); }
+.mood-center-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13px; color: #8c7b6b; text-align: center;
+}
+.mood-modes { display: flex; gap: 10px; }
+.mode-dot {
+  width: 10px; height: 10px; border-radius: 50%; background: #d4c9b5;
+  transition: all .3s;
+}
+.mode-dot.active { background: #5c4a3a; width: 24px; border-radius: 6px; }
+.mood-hint { font-size: 12px; color: #b0a390; letter-spacing: 1px; }
 
-/* 顶栏 */
-.chat-header {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 20px;
-  background: #F5F0E8; border-bottom: 1px solid rgba(0,0,0,.05);
-}
-.chat-avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: #E8DCC8; display:flex; align-items:center; justify-content:center;
-  font-size: 20px; flex-shrink: 0;
-}
-.chat-header-info { flex:1; }
-.chat-header-name { font-weight: 600; font-size: 15px; color: #3d3226; }
-.chat-header-path { font-size: 11px; color: #b0a390; letter-spacing: 1px; }
-.chat-reset { font-size: 12px; color: #b0a390; border:none; background:none; cursor:pointer; padding: 8px; }
+/* ═══════════════════════════════ */
+/*  场景2：对话日记               */
+/* ═══════════════════════════════ */
+.journal-scene { background: #F5F0E8; }
 
-/* 消息区 */
-.messages {
-  flex:1; overflow-y:auto; padding: 16px 18px;
-  display:flex; flex-direction:column; gap: 14px;
+.journal-masthead {
+  padding: 16px 24px 12px;
+  display: flex; justify-content: space-between; align-items: flex-end;
+  border-bottom: 1px solid rgba(0,0,0,.06);
 }
-.messages::-webkit-scrollbar { display:none; }
+.masthead-date {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px; color: #3d3226; letter-spacing: 2px;
+}
+.masthead-mood {
+  display: flex; align-items: center; gap: 6px;
+}
+.mood-dot-small {
+  width: 12px; height: 12px; border-radius: 50%; background: #c4a265;
+}
+.mood-word { font-size: 12px; color: #8c7b6b; letter-spacing: 1px; }
+.journal-quote {
+  padding: 10px 24px 6px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 12px; color: #b0a390; font-style: italic;
+  letter-spacing: 1px; text-align: center;
+}
+.journal-quote.only-apple { color: #c4a265; }
+.journal-quote.desire { color: #8c6b9e; }
 
+/* 对话区 */
+.conversation {
+  flex: 1; overflow-y: auto; padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.conversation::-webkit-scrollbar { display: none; }
+
+/* AI 普通消息 */
 .msg-ai {
-  align-self:flex-start; max-width:88%;
-  display:flex; gap:8px;
+  align-self: flex-start; max-width: 88%;
+  display: flex; gap: 8px;
 }
 .msg-ai-avatar {
-  width: 30px; height: 30px; border-radius:50%;
-  background:#E8DCC8; flex-shrink:0;
-  display:flex; align-items:center; justify-content:center;
-  font-size: 15px;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #E8DCC8; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
 }
+.msg-ai-body { display: flex; flex-direction: column; gap: 4px; }
 .msg-ai-text {
-  background:#fff; padding:12px 16px;
-  border-radius: 18px 18px 18px 4px;
-  font-size:14px; line-height:1.7; color:#3d3226;
+  background: #fff; padding: 14px 18px;
+  border-radius: 20px 20px 20px 4px;
+  font-size: 14px; line-height: 1.7; color: #3d3226;
+  box-shadow: 0 2px 8px rgba(0,0,0,.03);
   white-space: pre-wrap; word-break: break-word;
 }
+.msg-ai-time {
+  font-size: 10px; color: #c4b393; padding-left: 8px;
+}
 
+/* 用户消息 */
 .msg-user {
-  align-self:flex-end; max-width:85%;
+  align-self: flex-end; max-width: 85%;
 }
 .msg-user-text {
-  background:#3d3226; color:#F5F0E8;
-  padding:12px 16px;
-  border-radius: 18px 18px 4px 18px;
-  font-size:14px; line-height:1.7;
+  background: #3d3226; color: #F5F0E8;
+  padding: 14px 18px;
+  border-radius: 20px 20px 4px 20px;
+  font-size: 14px; line-height: 1.7;
   white-space: pre-wrap; word-break: break-word;
 }
 
+/* 加载动画 */
 .msg-loading {
-  align-self:flex-start; display:flex; gap:8px; align-items:center;
-  padding: 4px 0;
+  align-self: flex-start; display: flex; gap: 8px; align-items: center;
+  padding: 4px 8px;
 }
-.msg-loading-dots {
-  display:flex; gap:4px;
-}
+.msg-loading-dots { display: flex; gap: 4px; }
 .msg-loading-dots span {
-  width:7px; height:7px; border-radius:50%;
-  background:#c4b393;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #c4b393;
   animation: dot 1.4s infinite;
 }
-.msg-loading-dots span:nth-child(2) { animation-delay:.2s; }
-.msg-loading-dots span:nth-child(3) { animation-delay:.4s; }
+.msg-loading-dots span:nth-child(2) { animation-delay: .2s; }
+.msg-loading-dots span:nth-child(3) { animation-delay: .4s; }
 @keyframes dot {
-  0%,80%,100% { opacity:.3; transform:scale(.8); }
-  40% { opacity:1; transform:scale(1); }
+  0%,80%,100% { opacity: .3; transform: scale(.8); }
+  40% { opacity: 1; transform: scale(1); }
 }
 
-/* 输入栏 */
-.input-bar {
-  display:flex; gap:10px; align-items:center;
-  padding: 12px 18px 16px;
-  background:#F5F0E8; border-top:1px solid rgba(0,0,0,.04);
+/* ── AI 的插入卡片 ── */
+.insert-card {
+  align-self: stretch;
+  margin: 8px 0;
+  padding: 20px 24px;
+  border-radius: 2px 20px 20px 20px;
+  font-size: 13px; line-height: 1.8;
+  position: relative;
 }
-.input-bar textarea {
-  flex:1; padding:12px 18px; border-radius:22px;
-  border:1px solid #d4c9b5; font-size:14px; background:#fff; color:#3d3226;
-  outline:none; resize:none; font-family:inherit;
-  line-height:1.5; max-height:80px;
+.insert-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; width: 3px; height: 100%;
+  border-radius: 2px;
 }
-.input-bar textarea::placeholder { color:#c4b393; }
-.send-btn {
-  width: 42px; height: 42px; border-radius:50%;
-  background:#3d3226; color:#F5F0E8; border:none;
-  font-size:18px; cursor:pointer; flex-shrink:0;
-  display:flex; align-items:center; justify-content:center;
+/* 察觉 */
+.card-aware {
+  background: #fff; color: #5c4a3a;
+}
+.card-aware::before { background: #c4a265; }
+/* 释放 — 感恩 */
+.card-gratitude {
+  background: #FAF6F0; color: #5c4a3a;
+  border: 1px solid rgba(140, 160, 120, .2);
+}
+.card-gratitude::before { background: #7c9a6e; }
+/* 释放 — 转念 */
+.card-reframe {
+  background: #FDF8F2; color: #5c4a3a;
+  border: 1px solid rgba(180, 140, 100, .2);
+}
+.card-reframe::before { background: #c4946e; }
+/* 肯定 */
+.card-affirm {
+  background: linear-gradient(135deg, #FEF9F4, #FDF6EC);
+  color: #3d3226; border: 1px solid rgba(196, 162, 101, .2);
+}
+.card-affirm::before { background: #c4a265; }
+/* 行动 */
+.card-action {
+  background: #fff; color: #3d3226;
+  border: 1px solid rgba(0,0,0,.06);
+}
+.card-action::before { background: #3d3226; }
+
+.card-label {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: #8c7b6b; margin-bottom: 8px;
+}
+.card-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px; font-weight: 600; color: #3d3226; margin-bottom: 8px;
+}
+.card-body { font-size: 14px; line-height: 1.8; color: #5c4a3a; }
+.card-body em { font-family: 'Noto Serif SC', serif; font-style: italic; color: #8c7b6b; }
+
+/* 行动清单 */
+.todo-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 8px 0;
+}
+.todo-circle {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 1.5px solid #d4c9b5; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: transparent; cursor: pointer;
   transition: all .2s;
 }
-.send-btn:disabled { background:#c4b393; cursor:default; }
-.send-btn:not(:disabled):active { transform:scale(.92); }
+.todo-item.done .todo-circle { background: #7c9a6e; border-color: #7c9a6e; color: #fff; }
+.todo-text { font-size: 14px; color: #5c4a3a; line-height: 1.6; }
+.todo-item.done .todo-text { color: #b0a390; text-decoration: line-through; }
+
+/* 分隔线 */
+.interjection {
+  align-self: stretch;
+  display: flex; align-items: center; gap: 12px;
+  padding: 4px 0; margin: 4px 0;
+}
+.interjection-line {
+  flex: 1; height: 1px;
+  background: repeating-linear-gradient(90deg, #d4c9b5 0, #d4c9b5 3px, transparent 3px, transparent 6px);
+}
+.interjection-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 11px; color: #b0a390; font-style: italic; letter-spacing: 1px; white-space: nowrap;
+}
+
+/* 底部输入 */
+.journal-input-bar {
+  padding: 12px 20px 20px; display: flex; gap: 10px; align-items: center;
+  background: #F5F0E8; border-top: 1px solid rgba(0,0,0,.04);
+}
+.journal-input-bar textarea {
+  flex: 1; padding: 14px 20px; border-radius: 24px;
+  border: 1px solid #d4c9b5; font-size: 14px; background: #fff; color: #3d3226; outline: none;
+  font-family: 'Noto Sans SC', sans-serif; line-height: 1.5;
+  resize: none; max-height: 80px;
+}
+.journal-input-bar textarea::placeholder { color: #c4b393; font-style: italic; letter-spacing: 1px; }
+.send-btn {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: #3d3226; color: #F5F0E8; border: none;
+  font-size: 18px; cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+.send-btn:disabled { background: #c4b393; cursor: default; }
+.send-btn:not(:disabled):active { transform: scale(.92); }
+
+/* ═══════════════════════════════ */
+/*  场景3：AI 声音选择           */
+/* ═══════════════════════════════ */
+.voice-scene {
+  padding: 32px 24px; gap: 24px;
+  background: #F5F0E8;
+}
+.voice-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px; font-weight: 600; color: #3d3226;
+  text-align: center;
+}
+.voice-subtitle {
+  font-size: 13px; color: #8c7b6b; text-align: center; letter-spacing: 1px;
+}
+.voice-cards { display: flex; flex-direction: column; gap: 12px; }
+.voice-card {
+  padding: 18px 20px; background: #fff; border-radius: 16px;
+  border: 1.5px solid transparent; cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; gap: 14px;
+}
+.voice-card.selected { border-color: #3d3226; background: #FAF8F4; }
+.voice-emoji { font-size: 28px; flex-shrink: 0; }
+.voice-info { display: flex; flex-direction: column; gap: 2px; }
+.voice-name { font-family: 'Noto Serif SC', serif; font-size: 16px; color: #3d3226; font-weight: 600; }
+.voice-desc { font-size: 12px; color: #8c7b6b; line-height: 1.5; }
+.voice-select-indicator {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 2px solid #d4c9b5; flex-shrink: 0; margin-left: auto;
+  display: flex; align-items: center; justify-content: center;
+}
+.voice-card.selected .voice-select-indicator { background: #3d3226; border-color: #3d3226; }
+.voice-card.selected .voice-select-indicator::after {
+  content: '✓'; color: #fff; font-size: 12px;
+}
+
+/* ═══════════════════════════════ */
+/*  场景4：设置                   */
+/* ═══════════════════════════════ */
+.settings-scene {
+  padding: 32px 24px; gap: 20px;
+  background: #F5F0E8; align-items: center;
+}
+.settings-card {
+  width: 100%; background: #fff; border-radius: 16px;
+  padding: 24px; display: flex; flex-direction: column; gap: 12px;
+}
+.settings-label { font-size: 14px; color: #8c7b6b; font-weight: 500; }
+.settings-value { font-size: 16px; color: #3d3226; word-break: break-all; }
+.settings-about {
+  margin-top: 32px; text-align: center;
+  font-size: 13px; color: #b0a390; line-height: 1.8;
+}
+
+/* ═══════════════════════════════ */
+/*  底部导航                      */
+/* ═══════════════════════════════ */
+.bottom-nav {
+  display: flex; justify-content: space-around; align-items: center;
+  padding: 12px 32px 20px;
+  background: #F5F0E8; border-top: 1px solid rgba(0,0,0,.04);
+}
+.nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  font-size: 10px; color: #c4b393; cursor: pointer; transition: all .2s;
+  background: none; border: none; font-family: inherit; padding: 4px 12px;
+}
+.nav-item.active { color: #3d3226; }
+.nav-icon { font-size: 20px; }
+
+/* 日记本页 */
+.journal-list-scene {
+  padding: 32px 24px; gap: 16px;
+  background: #F5F0E8; overflow-y: auto;
+}
+.journal-list-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 20px; font-weight: 600; color: #3d3226;
+  text-align: center; margin-bottom: 8px;
+}
+.journal-entry {
+  background: #fff; border-radius: 16px; padding: 18px 20px;
+  cursor: pointer; transition: all .2s;
+}
+.journal-entry:hover { background: #FAF8F4; }
+.journal-entry-date {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px; font-weight: 600; color: #3d3226;
+}
+.journal-entry-preview {
+  font-size: 13px; color: #8c7b6b; margin-top: 4px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.journal-empty {
+  text-align: center; color: #c4b393; font-size: 14px;
+  padding: 48px 0; font-style: italic;
+}
 
 /* ── 响应式 ── */
 @media (max-width: 420px) {
-  .phone { width:100%; height:100vh; max-height:100vh; }
-  body { align-items:stretch; }
+  .phone { width:100%; height:100vh; max-height:100vh; border-radius:0; }
 }
 </style>
 </head>
@@ -180,19 +438,19 @@ body {
 
 <div class="phone" id="phone">
 
-  <!-- ═══ 入口页 ═══ -->
-  <div id="entry-screen">
+  <!-- ═══════ 场景0：入口 — 苹果问题 ═══════ -->
+  <div class="scene active entry-scene" id="scene-entry">
     <div class="entry-icon">🍎</div>
     <div class="entry-question">你觉得拥有苹果时，<br>就只看这颗苹果吗？<br>还是期待葡萄、香蕉、梨？</div>
     <div class="entry-paths">
-      <button class="path-btn" onclick="startChat('only-apple')">
+      <button class="path-btn" onclick="choosePath('only-apple')">
         <span class="path-emoji">🍎</span>
         <span>
           <span class="path-label">只看苹果</span>
           <span class="path-hint">我有的，可能还没看见</span>
         </span>
       </button>
-      <button class="path-btn" onclick="startChat('desire')">
+      <button class="path-btn" onclick="choosePath('desire')">
         <span class="path-emoji">🍇</span>
         <span>
           <span class="path-label">期待其他水果</span>
@@ -202,49 +460,232 @@ body {
     </div>
   </div>
 
-  <!-- ═══ 聊天页 ═══ -->
-  <div id="chat-screen">
-    <div class="chat-header">
-      <div class="chat-avatar">🍎</div>
-      <div class="chat-header-info">
-        <div class="chat-header-name">苹果</div>
-        <div class="chat-header-path" id="chat-header-path"></div>
+  <!-- ═══════ 场景1：情绪温度计 ═══════ -->
+  <div class="scene" id="scene-mood">
+    <div class="mood-entry">
+      <div class="mood-date" id="mood-date"></div>
+      <div class="mood-question">此刻，你的<br>情绪停在哪里？</div>
+      <div class="mood-wheel">
+        <span class="mood-label" style="top:12%;left:50%">平静</span>
+        <span class="mood-label" style="top:28%;left:80%">兴奋</span>
+        <span class="mood-label" style="top:55%;left:88%">感恩</span>
+        <span class="mood-label" style="top:78%;left:62%">期待</span>
+        <span class="mood-label" style="top:82%;left:30%">疲惫</span>
+        <span class="mood-label" style="top:65%;left:8%">低落</span>
+        <span class="mood-label" style="top:38%;left:5%">焦虑</span>
+        <span class="mood-label" style="top:18%;left:22%">充实</span>
+        <div class="mood-center" onclick="enterJournal()">
+          <div class="mood-center-text">触碰<br>开始</div>
+        </div>
       </div>
-      <button class="chat-reset" onclick="resetChat()">重新开始</button>
+      <div class="mood-modes">
+        <span class="mode-dot active"></span>
+        <span class="mode-dot"></span>
+        <span class="mode-dot"></span>
+        <span class="mode-dot"></span>
+      </div>
+      <div class="mood-hint">← 四种模式 · 滑动切换 →</div>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-item active" onclick="showScene('scene-mood')"><span class="nav-icon">🌙</span>今天</button>
+      <button class="nav-item" onclick="enterJournal()"><span class="nav-icon">💬</span>聊天</button>
+      <button class="nav-item" onclick="showScene('scene-voice')"><span class="nav-icon">🎙️</span>声音</button>
+      <button class="nav-item" onclick="showScene('scene-settings')"><span class="nav-icon">⚙️</span>设置</button>
+    </div>
+  </div>
+
+  <!-- ═══════ 场景2：对话日记 ═══════ -->
+  <div class="scene" id="scene-journal">
+    <div class="journal-scene" style="flex:1; display:flex; flex-direction:column;">
+      <div class="journal-masthead">
+        <button onclick="showScene('scene-mood')" style="background:none;border:none;font-size:18px;cursor:pointer;padding:0 4px;">←</button>
+        <div style="flex:1;">
+          <div class="masthead-date" id="masthead-date"></div>
+        </div>
+        <div class="masthead-mood">
+          <span class="mood-dot-small"></span>
+          <span class="mood-word" id="masthead-path">只看苹果</span>
+        </div>
+      </div>
+      <div class="journal-quote" id="journal-quote"></div>
+
+      <div class="conversation" id="conversation"></div>
+
+      <div class="journal-input-bar">
+        <textarea id="userInput" rows="1" placeholder="写下此刻的感受..."
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
+      </div>
     </div>
 
-    <div class="messages" id="messages"></div>
+    <div class="bottom-nav">
+      <button class="nav-item" onclick="showScene('scene-mood')"><span class="nav-icon">🌙</span>今天</button>
+      <button class="nav-item" onclick="showScene('scene-voice')"><span class="nav-icon">🎙️</span>声音</button>
+      <button class="nav-item" onclick="showScene('scene-settings')"><span class="nav-icon">⚙️</span>设置</button>
+      <button class="nav-item" onclick="resetAll()"><span class="nav-icon">🍎</span>重新选</button>
+    </div>
+  </div>
 
-    <div class="input-bar">
-      <textarea id="userInput" rows="1" placeholder="说点什么..."
-        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
-      <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
+  <!-- ═══════ 场景3：AI 声音选择 ═══════ -->
+  <div class="scene" id="scene-voice">
+    <div class="voice-scene" style="flex:1; overflow-y:auto;">
+      <div class="voice-title">选择 AI 的声音</div>
+      <div class="voice-subtitle">不同日子，需要不同的陪伴</div>
+
+      <div class="voice-cards" id="voice-cards">
+        <div class="voice-card selected" data-voice="mirror">
+          <div class="voice-emoji">🪞</div>
+          <div class="voice-info"><span class="voice-name">温柔的镜子</span><span class="voice-desc">观察 + 共情，帮你照见自己</span></div>
+          <div class="voice-select-indicator"></div>
+        </div>
+        <div class="voice-card" data-voice="coach">
+          <div class="voice-emoji">🧭</div>
+          <div class="voice-info"><span class="voice-name">温和的教练</span><span class="voice-desc">引导 + 追问，推动你往前走</span></div>
+          <div class="voice-select-indicator"></div>
+        </div>
+        <div class="voice-card" data-voice="friend">
+          <div class="voice-emoji">🫂</div>
+          <div class="voice-info"><span class="voice-name">陪伴的朋友</span><span class="voice-desc">有情绪、有态度，像深夜的电话</span></div>
+          <div class="voice-select-indicator"></div>
+        </div>
+        <div class="voice-card" data-voice="analyst">
+          <div class="voice-emoji">🔬</div>
+          <div class="voice-info"><span class="voice-name">克制的分析师</span><span class="voice-desc">数据 + 趋势，客观标记和整理</span></div>
+          <div class="voice-select-indicator"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <button class="nav-item" onclick="showScene('scene-mood')"><span class="nav-icon">🌙</span>今天</button>
+      <button class="nav-item" onclick="showScene('scene-journal')"><span class="nav-icon">📖</span>日记本</button>
+      <button class="nav-item active" onclick="showScene('scene-voice')"><span class="nav-icon">🎙️</span>声音</button>
+      <button class="nav-item" onclick="showScene('scene-settings')"><span class="nav-icon">⚙️</span>设置</button>
+    </div>
+  </div>
+
+  <!-- ═══════ 场景4：设置 ═══════ -->
+  <div class="scene" id="scene-settings">
+    <div class="settings-scene" style="flex:1; overflow-y:auto;">
+      <div class="voice-title" style="margin-bottom:4px;">设置</div>
+
+      <div class="settings-card">
+        <div class="settings-label">当前路径</div>
+        <div class="settings-value" id="settings-path">未选择</div>
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-label">AI 声音</div>
+        <div class="settings-value" id="settings-voice">温柔的镜子</div>
+      </div>
+
+      <div class="settings-card">
+        <div class="settings-label">API 状态</div>
+        <div class="settings-value" id="settings-api">DeepSeek Chat</div>
+      </div>
+
+      <div class="settings-about">
+        苹果 · v0.1<br>
+        DeepSeek AI 驱动<br>
+        一个住在日记里的人
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <button class="nav-item" onclick="showScene('scene-mood')"><span class="nav-icon">🌙</span>今天</button>
+      <button class="nav-item" onclick="showScene('scene-journal')"><span class="nav-icon">📖</span>日记本</button>
+      <button class="nav-item" onclick="showScene('scene-voice')"><span class="nav-icon">🎙️</span>声音</button>
+      <button class="nav-item active" onclick="showScene('scene-settings')"><span class="nav-icon">⚙️</span>设置</button>
     </div>
   </div>
 
 </div>
 
 <script>
+// ── 状态 ──
 let currentPath = ''
+let currentVoice = 'mirror'
 let messages = []
 let isLoading = false
 
-const pathNames = {
-  'only-apple': '只看苹果',
-  'desire': '期待其他水果'
+const pathInfo = {
+  'only-apple': { name: '只看苹果', emoji: '🍎', quotes: [
+    '有时候，不是没有，是忘了低头看。',
+    '拥有不是一种状态，是一种注意力。'
+  ]},
+  'desire': { name: '期待其他水果', emoji: '🍇', quotes: [
+    '渴望不是贪心，是你在往前的信号。',
+    '你没有的，不在你外面，在你还没走到的路上。'
+  ]}
 }
 
-function startChat(path) {
-  currentPath = path
-  messages = []
+const voiceNames = {
+  'mirror': '温柔的镜子',
+  'coach': '温和的教练',
+  'friend': '陪伴的朋友',
+  'analyst': '克制的分析师'
+}
 
-  document.getElementById('entry-screen').classList.add('hidden')
-  document.getElementById('chat-screen').classList.add('active')
-  document.getElementById('chat-header-path').textContent = pathNames[path]
-  document.getElementById('messages').innerHTML = ''
+// ── 初始化 ──
+function init() {
+  updateDateDisplay()
+  loadVoiceSetting()
+  loadJournalHistory()
+}
+
+function updateDateDisplay() {
+  const now = new Date()
+  const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
+  const months = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二']
+  const dateStr = `${now.getFullYear()}年${months[now.getMonth()]}月${now.getDate()}日 · ${weekdays[now.getDay()]}`
+  document.getElementById('mood-date').textContent = dateStr
+  document.getElementById('masthead-date').textContent = dateStr
+}
+
+// ── 场景切换 ──
+function showScene(id) {
+  document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'))
+  document.getElementById(id).classList.add('active')
+
+  // 更新所有底部导航的 active 状态
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'))
+  const navItem = document.querySelector(`.bottom-nav .nav-item[onclick*="${id}"]`)
+  if (navItem) navItem.classList.add('active')
+
+  if (id === 'scene-settings') updateSettingsDisplay()
+  if (id === 'scene-journal-list') renderJournalList()
+}
+
+// ── 入口分叉 ──
+function choosePath(path) {
+  currentPath = path
+  const info = pathInfo[path]
+
+  document.getElementById('masthead-path').textContent = info.name
+  const quote = document.getElementById('journal-quote')
+  quote.textContent = info.quotes[0]
+  quote.className = 'journal-quote ' + path
+
+  document.getElementById('settings-path').textContent = info.name
+
+  // 显示温度计
+  document.getElementById('scene-entry').classList.remove('active')
+  showScene('scene-mood')
+}
+
+// ── 进入日记 ──
+function enterJournal() {
+  if (!currentPath) {
+    // 如果没选路径直接点温度计，引导回入口
+    showScene('scene-entry')
+    return
+  }
+  showScene('scene-journal')
   document.getElementById('userInput').focus()
 
-  sendFirstMessage()
+  if (messages.length === 0) {
+    sendFirstMessage()
+  }
 }
 
 function sendFirstMessage() {
@@ -258,20 +699,21 @@ function sendFirstMessage() {
       '嗯，我在。\n\n你刚才在入口那里停了一下对吧。期待其他水果——哪个水果最让你心跳？\n\n不用想太多，第一个冒出来的就是。'
     ]
   }
-
   const list = greetings[currentPath] || greetings['only-apple']
   const text = list[Math.floor(Math.random() * list.length)]
-
   addMessage('ai', text)
 }
 
+// ── 消息渲染 ──
 function addMessage(role, content) {
-  messages.push({ role, content })
+  messages.push({ role, content, time: new Date().toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) })
+  saveJournalHistory()
   renderMessages()
 }
 
 function renderMessages() {
-  const container = document.getElementById('messages')
+  const container = document.getElementById('conversation')
+  if (!container) return
   let html = ''
 
   for (const msg of messages) {
@@ -279,7 +721,10 @@ function renderMessages() {
       html += `
         <div class="msg-ai">
           <div class="msg-ai-avatar">🍎</div>
-          <div class="msg-ai-text">${escapeHtml(msg.content)}</div>
+          <div class="msg-ai-body">
+            <div class="msg-ai-text">${escapeHtml(msg.content)}</div>
+            <div class="msg-ai-time">${msg.time || ''}</div>
+          </div>
         </div>`
     } else {
       html += `
@@ -292,10 +737,8 @@ function renderMessages() {
   if (isLoading) {
     html += `
       <div class="msg-loading">
-        <div class="msg-ai-avatar" style="width:30px;height:30px;font-size:15px;">🍎</div>
-        <div class="msg-loading-dots">
-          <span></span><span></span><span></span>
-        </div>
+        <div class="msg-ai-avatar">🍎</div>
+        <div class="msg-loading-dots"><span></span><span></span><span></span></div>
       </div>`
   }
 
@@ -303,13 +746,16 @@ function renderMessages() {
   container.scrollTop = container.scrollHeight
 }
 
+// ── 发送消息 ──
 async function sendMessage() {
-  if (isLoading) return
+  if (isLoading) { console.log('sendMessage blocked: isLoading'); return }
 
   const input = document.getElementById('userInput')
+  if (!input) { console.log('sendMessage blocked: no input element'); return }
   const text = input.value.trim()
-  if (!text) return
+  if (!text) { console.log('sendMessage blocked: empty text'); return }
 
+  console.log('sendMessage: sending', text.slice(0,30))
   input.value = ''
   input.style.height = 'auto'
   document.getElementById('sendBtn').disabled = true
@@ -322,17 +768,21 @@ async function sendMessage() {
     const apiMessages = messages
       .filter(m => m.role === 'user' || m.role === 'ai')
       .map(m => ({ role: m.role, content: m.content }))
+      .slice(-20)
 
-    const recent = apiMessages.slice(-20)
+    console.log('sendMessage: calling /api/chat', apiMessages.length, 'messages')
 
     const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        messages: recent,
-        path: currentPath
+        messages: apiMessages,
+        path: currentPath,
+        voice: currentVoice
       })
     })
+
+    console.log('sendMessage: response status', res.status)
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}))
@@ -340,37 +790,145 @@ async function sendMessage() {
     }
 
     const data = await res.json()
+    console.log('sendMessage: got reply', data.content?.slice(0,30))
     addMessage('ai', data.content)
   } catch (err) {
+    console.error('sendMessage: error', err.message)
     addMessage('ai', '……刚才走神了。再说一次？' + (err.message ? '\n\n（' + err.message + '）' : ''))
   } finally {
     isLoading = false
     document.getElementById('sendBtn').disabled = false
     renderMessages()
-    document.getElementById('userInput').focus()
+    const inp = document.getElementById('userInput')
+    if (inp) inp.focus()
   }
 }
 
-function resetChat() {
-  document.getElementById('entry-screen').classList.remove('hidden')
-  document.getElementById('chat-screen').classList.remove('active')
+// 页面加载时输出状态
+console.log('苹果 frontend loaded')
+console.log('userInput element:', document.getElementById('userInput'))
+console.log('sendBtn element:', document.getElementById('sendBtn'))
+
+// ── 重置 ──
+function resetAll() {
   messages = []
   currentPath = ''
-  document.getElementById('messages').innerHTML = ''
+  isLoading = false
   document.getElementById('userInput').value = ''
   document.getElementById('sendBtn').disabled = false
+  document.getElementById('conversation').innerHTML = ''
+  document.getElementById('scene-entry').classList.add('active')
+  document.querySelectorAll('.scene').forEach(s => { if (s.id !== 'scene-entry') s.classList.remove('active') })
+  document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'))
 }
 
+// ── 声音选择 ──
+function loadVoiceSetting() {
+  const saved = localStorage.getItem('apple-voice')
+  if (saved && voiceNames[saved]) {
+    currentVoice = saved
+  }
+  updateVoiceUI()
+}
+
+function updateVoiceUI() {
+  document.querySelectorAll('.voice-card').forEach(card => {
+    card.classList.toggle('selected', card.dataset.voice === currentVoice)
+  })
+  document.getElementById('settings-voice').textContent = voiceNames[currentVoice]
+}
+
+document.getElementById('voice-cards').addEventListener('click', function(e) {
+  const card = e.target.closest('.voice-card')
+  if (!card) return
+  currentVoice = card.dataset.voice
+  localStorage.setItem('apple-voice', currentVoice)
+  updateVoiceUI()
+})
+
+// ── 日记历史 ──
+function saveJournalHistory() {
+  if (messages.length === 0) return
+  const key = 'apple-journal-' + new Date().toISOString().slice(0, 10)
+  const entry = {
+    date: new Date().toISOString(),
+    path: currentPath,
+    preview: messages.filter(m => m.role === 'user').slice(-1)[0]?.content?.slice(0, 50) || '',
+    messages: messages
+  }
+  try {
+    localStorage.setItem(key, JSON.stringify(entry))
+  } catch(e) { /* quota exceeded, ignore */ }
+}
+
+function loadJournalHistory() {
+  // 预加载以备日记本功能使用
+}
+
+function renderJournalList() {
+  const container = document.getElementById('journal-list-content')
+  if (!container) return
+  const keys = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i)
+    if (k && k.startsWith('apple-journal-')) keys.push(k)
+  }
+  keys.sort().reverse()
+
+  if (keys.length === 0) {
+    container.innerHTML = '<div class="journal-empty">还没有日记<br>去聊一次天吧</div>'
+    return
+  }
+
+  let html = ''
+  for (const k of keys.slice(0, 30)) {
+    try {
+      const entry = JSON.parse(localStorage.getItem(k))
+      const date = new Date(entry.date)
+      const dateStr = `${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}`
+      html += `
+        <div class="journal-entry" onclick="loadPastEntry('${k}')">
+          <div class="journal-entry-date">${dateStr} · ${pathInfo[entry.path]?.name || ''}</div>
+          <div class="journal-entry-preview">${escapeHtml(entry.preview || '(空)')}</div>
+        </div>`
+    } catch(e) {}
+  }
+  container.innerHTML = html
+}
+
+function loadPastEntry(key) {
+  try {
+    const entry = JSON.parse(localStorage.getItem(key))
+    if (!entry) return
+    currentPath = entry.path
+    messages = entry.messages
+    showScene('scene-journal')
+    renderMessages()
+  } catch(e) {}
+}
+
+// ── 设置显示 ──
+function updateSettingsDisplay() {
+  document.getElementById('settings-path').textContent = currentPath ? pathInfo[currentPath].name : '未选择'
+  document.getElementById('settings-voice').textContent = voiceNames[currentVoice]
+}
+
+// ── 工具函数 ──
 function escapeHtml(text) {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
+  if (!text) return ''
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-document.getElementById('userInput').addEventListener('input', function() {
-  this.style.height = 'auto'
-  this.style.height = Math.min(this.scrollHeight, 80) + 'px'
+// 输入框自适应高度
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('userInput')
+  if (input) {
+    input.addEventListener('input', function() {
+      this.style.height = 'auto'
+      this.style.height = Math.min(this.scrollHeight, 80) + 'px'
+    })
+  }
+  init()
 })
 </script>
 
