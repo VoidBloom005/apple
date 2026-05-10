@@ -29,7 +29,7 @@ body {
 /* ═══════════════════════════════ */
 /*  场景控制                      */
 /* ═══════════════════════════════ */
-.scene { display:none; flex-direction:column; flex:1; overflow:hidden; }
+.scene { display:none; flex-direction:column; flex:1; overflow:hidden; min-height:0; }
 .scene.active { display:flex; }
 
 /* ═══════════════════════════════ */
@@ -107,7 +107,12 @@ body {
   position: absolute;
   font-family: 'Noto Serif SC', serif;
   font-size: 14px; color: #6b5e4e; transform: translate(-50%, -50%);
-  pointer-events: none;
+  cursor: pointer; transition: all .2s; padding: 6px 10px; border-radius: 14px;
+  background: transparent;
+}
+.mood-label:hover, .mood-label:active { color: #3d3226; }
+.mood-label.selected {
+  color: #F5F0E8; background: #3d3226; font-weight: 600;
 }
 .mood-center {
   position: absolute; top: 50%; left: 50%;
@@ -125,15 +130,19 @@ body {
 .mood-modes { display: flex; gap: 10px; }
 .mode-dot {
   width: 10px; height: 10px; border-radius: 50%; background: #d4c9b5;
-  transition: all .3s;
+  transition: all .3s; cursor: pointer; padding: 0; border: none;
 }
 .mode-dot.active { background: #5c4a3a; width: 24px; border-radius: 6px; }
 .mood-hint { font-size: 12px; color: #b0a390; letter-spacing: 1px; }
+.mood-hint-mode { display: block; font-size: 12px; color: #b0a390; letter-spacing: 1px; text-align: center; }
 
 /* ═══════════════════════════════ */
 /*  场景2：对话日记               */
 /* ═══════════════════════════════ */
-.journal-scene { background: #F5F0E8; }
+.journal-scene {
+  background: #F5F0E8;
+  flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0;
+}
 
 .journal-masthead {
   padding: 16px 24px 12px;
@@ -164,6 +173,7 @@ body {
 .conversation {
   flex: 1; overflow-y: auto; padding: 16px 20px;
   display: flex; flex-direction: column; gap: 18px;
+  min-height: 0; -webkit-overflow-scrolling: touch;
 }
 .conversation::-webkit-scrollbar { display: none; }
 
@@ -440,6 +450,7 @@ body {
   display: flex; justify-content: space-around; align-items: center;
   padding: 12px 32px 20px;
   background: #F5F0E8; border-top: 1px solid rgba(0,0,0,.04);
+  flex-shrink: 0;
 }
 .nav-item {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -514,32 +525,26 @@ body {
     <div class="mood-entry">
       <div class="mood-date" id="mood-date"></div>
       <div class="mood-question">此刻，你的<br>情绪停在哪里？</div>
-      <div class="mood-wheel">
-        <span class="mood-label" style="top:12%;left:50%">平静</span>
-        <span class="mood-label" style="top:28%;left:80%">兴奋</span>
-        <span class="mood-label" style="top:55%;left:88%">感恩</span>
-        <span class="mood-label" style="top:78%;left:62%">期待</span>
-        <span class="mood-label" style="top:82%;left:30%">疲惫</span>
-        <span class="mood-label" style="top:65%;left:8%">低落</span>
-        <span class="mood-label" style="top:38%;left:5%">焦虑</span>
-        <span class="mood-label" style="top:18%;left:22%">充实</span>
+      <div class="mood-wheel" id="mood-wheel">
+        <span class="mood-label" style="top:12%;left:50%" onclick="selectMood('平静', this)">平静</span>
+        <span class="mood-label" style="top:28%;left:80%" onclick="selectMood('兴奋', this)">兴奋</span>
+        <span class="mood-label" style="top:55%;left:88%" onclick="selectMood('感恩', this)">感恩</span>
+        <span class="mood-label" style="top:78%;left:62%" onclick="selectMood('期待', this)">期待</span>
+        <span class="mood-label" style="top:82%;left:30%" onclick="selectMood('疲惫', this)">疲惫</span>
+        <span class="mood-label" style="top:65%;left:8%" onclick="selectMood('低落', this)">低落</span>
+        <span class="mood-label" style="top:38%;left:5%" onclick="selectMood('焦虑', this)">焦虑</span>
+        <span class="mood-label" style="top:18%;left:22%" onclick="selectMood('充实', this)">充实</span>
         <div class="mood-center" onclick="enterJournal()">
           <div class="mood-center-text">触碰<br>开始</div>
         </div>
       </div>
-      <div class="mood-modes">
-        <span class="mode-dot active"></span>
-        <span class="mode-dot"></span>
-        <span class="mode-dot"></span>
-        <span class="mode-dot"></span>
+      <div class="mood-modes" id="mood-modes">
+        <span class="mode-dot active" onclick="switchMoodMode(0)"></span>
+        <span class="mode-dot" onclick="switchMoodMode(1)"></span>
+        <span class="mode-dot" onclick="switchMoodMode(2)"></span>
+        <span class="mode-dot" onclick="switchMoodMode(3)"></span>
       </div>
-      <div class="mood-hint">← 四种模式 · 滑动切换 →</div>
-    </div>
-    <div class="bottom-nav">
-      <button class="nav-item active" onclick="showScene('scene-mood')"><span class="nav-icon">🌙</span>今天</button>
-      <button class="nav-item" onclick="enterJournal()"><span class="nav-icon">💬</span>聊天</button>
-      <button class="nav-item" onclick="showScene('scene-voice')"><span class="nav-icon">🎙️</span>声音</button>
-      <button class="nav-item" onclick="showScene('scene-settings')"><span class="nav-icon">⚙️</span>设置</button>
+      <div class="mood-hint-mode" id="mood-hint-text">轻触选择一个情绪，然后触碰中心</div>
     </div>
   </div>
 
@@ -552,9 +557,11 @@ body {
           <div class="masthead-date" id="masthead-date"></div>
         </div>
         <div class="masthead-mood">
-          <span class="mood-dot-small"></span>
-          <span class="mood-word" id="masthead-path">只看苹果</span>
+          <span class="mood-dot-small" id="masthead-mood-dot"></span>
+          <span class="mood-word" id="masthead-mood-text" style="margin-right:8px;">未选</span>
+          <span class="mood-word" id="masthead-path" style="color:#c4a265;">只看苹果</span>
         </div>
+        <button onclick="resetAll()" style="background:none;border:none;font-size:13px;color:#b0a390;cursor:pointer;padding:4px 8px;">🍎 重新选</button>
       </div>
       <div class="journal-quote" id="journal-quote"></div>
 
@@ -565,13 +572,6 @@ body {
           onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
         <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
       </div>
-    </div>
-
-    <div class="bottom-nav">
-      <button class="nav-item" onclick="showScene('scene-mood')"><span class="nav-icon">🌙</span>今天</button>
-      <button class="nav-item" onclick="showScene('scene-voice')"><span class="nav-icon">🎙️</span>声音</button>
-      <button class="nav-item" onclick="showScene('scene-settings')"><span class="nav-icon">⚙️</span>设置</button>
-      <button class="nav-item" onclick="resetAll()"><span class="nav-icon">🍎</span>重新选</button>
     </div>
   </div>
 
@@ -603,13 +603,6 @@ body {
           <div class="voice-select-indicator"></div>
         </div>
       </div>
-    </div>
-
-    <div class="bottom-nav">
-      <button class="nav-item" onclick="showScene('scene-mood')"><span class="nav-icon">🌙</span>今天</button>
-      <button class="nav-item" onclick="showScene('scene-journal')"><span class="nav-icon">📖</span>日记本</button>
-      <button class="nav-item active" onclick="showScene('scene-voice')"><span class="nav-icon">🎙️</span>声音</button>
-      <button class="nav-item" onclick="showScene('scene-settings')"><span class="nav-icon">⚙️</span>设置</button>
     </div>
   </div>
 
@@ -649,13 +642,6 @@ body {
         一个住在日记里的人
       </div>
     </div>
-
-    <div class="bottom-nav">
-      <button class="nav-item" onclick="showScene('scene-mood')"><span class="nav-icon">🌙</span>今天</button>
-      <button class="nav-item" onclick="showScene('scene-journal')"><span class="nav-icon">📖</span>日记本</button>
-      <button class="nav-item" onclick="showScene('scene-voice')"><span class="nav-icon">🎙️</span>声音</button>
-      <button class="nav-item active" onclick="showScene('scene-settings')"><span class="nav-icon">⚙️</span>设置</button>
-    </div>
   </div>
 
   <!-- ═══════ 场景5：首次设置 API ═══════ -->
@@ -680,12 +666,22 @@ body {
     </div>
   </div>
 
+  <!-- ═══════ 统一底部导航 ═══════ -->
+  <div class="bottom-nav" id="bottom-nav">
+    <button class="nav-item active" data-scene="scene-mood" onclick="navigateTo('scene-mood')"><span class="nav-icon">🌙</span>今天</button>
+    <button class="nav-item" data-scene="scene-journal" onclick="navigateTo('scene-journal')"><span class="nav-icon">💬</span>聊天</button>
+    <button class="nav-item" data-scene="scene-voice" onclick="navigateTo('scene-voice')"><span class="nav-icon">🎙️</span>声音</button>
+    <button class="nav-item" data-scene="scene-settings" onclick="navigateTo('scene-settings')"><span class="nav-icon">⚙️</span>设置</button>
+  </div>
+
 </div>
 
 <script>
 // ── 状态 ──
 let currentPath = ''
 let currentVoice = 'mirror'
+let currentMood = ''
+let currentMoodMode = 0
 let messages = []
 let isLoading = false
 
@@ -855,6 +851,67 @@ async function testApiConnection() {
   }
 }
 
+// ── 情绪选择 ──
+function selectMood(mood, el) {
+  currentMood = mood
+  document.querySelectorAll('.mood-label').forEach(l => l.classList.remove('selected'))
+  el.classList.add('selected')
+  document.getElementById('masthead-mood-text').textContent = mood
+  document.getElementById('masthead-mood-dot').style.background = '#5c4a3a'
+  document.getElementById('mood-center-text').innerHTML = mood + '<br>开始对话 →'
+}
+
+const moodModes = [
+  { name: '情绪轮盘', hint: '轻触选择一个情绪，然后触碰中心', moods: ['平静','兴奋','感恩','期待','疲惫','低落','焦虑','充实'] },
+  { name: '光谱', hint: '从左到右，你的情绪偏哪边？', moods: ['沉重','低落','平静','满足','兴奋'] },
+  { name: '象限', hint: '选一个最接近的区域', moods: ['高能·好','高能·差','低能·好','低能·差'] },
+  { name: '简单', hint: '此刻你最强烈的感受是？', moods: ['开心','平静','疲惫','低落','其他'] }
+]
+
+function switchMoodMode(modeIdx) {
+  currentMoodMode = modeIdx
+  // 更新模式点
+  document.querySelectorAll('.mode-dot').forEach((dot, i) => {
+    dot.classList.toggle('active', i === modeIdx)
+  })
+  const mode = moodModes[modeIdx]
+  document.getElementById('mood-hint-text').textContent = mode.hint
+  // 更新情绪标签
+  const wheel = document.getElementById('mood-wheel')
+  const labels = wheel.querySelectorAll('.mood-label')
+  const moods = mode.moods
+  // 计算位置（环形分布）
+  const positions = [
+    { top: '12%', left: '50%' }, { top: '28%', left: '80%' },
+    { top: '55%', left: '88%' }, { top: '78%', left: '62%' },
+    { top: '82%', left: '30%' }, { top: '65%', left: '8%' },
+    { top: '38%', left: '5%' }, { top: '18%', left: '22%' }
+  ]
+  labels.forEach((label, i) => {
+    if (i < moods.length) {
+      label.textContent = moods[i]
+      label.style.top = positions[i]?.top || ''
+      label.style.left = positions[i]?.left || ''
+      label.style.display = ''
+      label.className = 'mood-label'
+    } else {
+      label.style.display = 'none'
+    }
+  })
+  currentMood = ''
+  document.getElementById('masthead-mood-text').textContent = '未选'
+  document.getElementById('mood-center-text').innerHTML = '触碰<br>开始'
+}
+
+// ── 统一导航 ──
+function navigateTo(sceneId) {
+  if (sceneId === 'scene-journal') {
+    enterJournal()
+    return
+  }
+  showScene(sceneId)
+}
+
 // ── 初始化 ──
 function init() {
   updateDateDisplay()
@@ -890,13 +947,17 @@ function showScene(id) {
   document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'))
   document.getElementById(id).classList.add('active')
 
-  // 更新所有底部导航的 active 状态
-  document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'))
-  const navItem = document.querySelector(`.bottom-nav .nav-item[onclick*="${id}"]`)
+  // 更新统一底部导航
+  document.querySelectorAll('#bottom-nav .nav-item').forEach(n => n.classList.remove('active'))
+  const navItem = document.querySelector(`#bottom-nav .nav-item[data-scene="${id}"]`)
   if (navItem) navItem.classList.add('active')
 
   if (id === 'scene-settings') updateSettingsDisplay()
   if (id === 'scene-journal-list') renderJournalList()
+  // 确保 settings 和 voice 场景内容可以滚动
+  if (id === 'scene-settings' || id === 'scene-voice') {
+    document.getElementById(id).style.overflowY = 'auto'
+  }
 }
 
 // ── 入口分叉 ──
@@ -943,7 +1004,11 @@ function sendFirstMessage() {
     ]
   }
   const list = greetings[currentPath] || greetings['only-apple']
-  const text = list[Math.floor(Math.random() * list.length)]
+  let text = list[Math.floor(Math.random() * list.length)]
+  // 如果选了情绪，苹果的第一句话会自然提及
+  if (currentMood) {
+    text = '嗯，你来了。\n\n' + currentMood + '——我感受到了。今天带着这个情绪来很正常。\n\n跟我说说，你现在在想什么？'
+  }
   addMessage('ai', text)
 }
 
@@ -1073,14 +1138,18 @@ console.log('sendBtn element:', document.getElementById('sendBtn'))
 function resetAll() {
   messages = []
   currentPath = ''
+  currentMood = ''
   isLoading = false
   document.getElementById('userInput').value = ''
   document.getElementById('sendBtn').disabled = false
   document.getElementById('conversation').innerHTML = ''
+  document.getElementById('masthead-mood-text').textContent = '未选'
+  document.getElementById('mood-center-text').innerHTML = '触碰<br>开始'
+  document.querySelectorAll('.mood-label').forEach(l => l.classList.remove('selected'))
   const targetScene = isApiConfigured() ? 'scene-entry' : 'scene-setup'
   document.getElementById(targetScene).classList.add('active')
   document.querySelectorAll('.scene').forEach(s => { if (s.id !== targetScene) s.classList.remove('active') })
-  document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'))
+  document.querySelectorAll('#bottom-nav .nav-item').forEach(n => n.classList.remove('active'))
 }
 
 // ── 声音选择 ──
